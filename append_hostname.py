@@ -22,6 +22,15 @@ import re
 path = sys.argv[1]
 regex = "^hostname (.*)"
 
+# Terminate if provided path does not exist.
+if not os.path.exists(path):
+    print(f"Path does not exist: '{path}'")
+    exit(1)
+
+# Add trailing slash to path if it wasn't included from the input.
+# Will not add trailing slash if already exists.
+path = os.path.join(path, "")
+
 print(f"Checking .log files in path: {path}")
 
 for file in os.listdir(path):
@@ -41,4 +50,3 @@ for file in os.listdir(path):
                 print(f"> No lines start with 'hostname' in: {file}")
     else:
         print(f"> Ignoring (not a .log file): {file}")
-
