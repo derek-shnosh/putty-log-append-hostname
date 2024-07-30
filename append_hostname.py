@@ -18,6 +18,8 @@ Usage: python3 ./append_hostname.py ./logfiles/
 import sys
 import os
 import re
+import click
+from sys import platform
 
 path = sys.argv[1]
 regex = "^hostname (.*)"
@@ -30,6 +32,10 @@ if not os.path.exists(path):
 # Add trailing slash to path if it wasn't included from the input.
 # Will not add trailing slash if already exists.
 path = os.path.join(path, "")
+
+# If linux, prompt to change all .log files to read-only.
+if platform == "linux" or platform == "linux2":
+    make_read_only = click.confirm("Change permissions on renamed .log files to read-only?", default=False)
 
 print(f"Checking .log files in path: {path}")
 
@@ -46,6 +52,12 @@ for file in os.listdir(path):
                 else:
                     print(f"> Renaming: {file} -> {hostname}_{file}")
                     os.rename(f"{path}{file}", f"{path}{hostname}_{file}")
+                    if make_read_only:
+                        if os.access(f"{path}{hostname}_{file}", os.W_OK):
+                            print(f"  ... Changing permissions to read-only.")
+                            os.chmod(f"{path}{hostname}_{file}", 0o444)
+                        else:
+                            print(f"  ... File is already read-only.")
             else:
                 print(f"> No lines start with 'hostname' in: {file}")
     else:
